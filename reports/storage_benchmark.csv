@@ -1,0 +1,6 @@
+format,size_MB,read_all_s,read_all_std,read_5cols_s,read_5cols_std,filter_1q_s,filter_1q_std,size_vs_CSV_%
+CSV,418.0,1.439,0.524,1.783,0.555,1.083,0.063,100.0
+Parquet-snappy,208.6,0.251,0.075,0.063,0.002,0.043,0.017,49.9
+Parquet-zstd,151.3,1.909,0.433,0.198,0.049,0.037,0.005,36.2
+Parquet-gzip,151.8,1.424,0.132,0.088,0.073,0.024,0.004,36.3
+Parquet-zstd-partitioned,154.5,0.225,0.01,0.098,0.041,0.011,0.001,37.0
