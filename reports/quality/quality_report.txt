@@ -1,0 +1,254 @@
+
+==============================================================================
+1. SCHEMA AUDIT: are column types identical in all 170 files?
+==============================================================================
+Quarterly files found: 170
+Columns with mixed types or absent from some files: 14 of 33
+ column            types_found  n_types  files_without_column
+    DEP  int64 x169; double x1        2                     0
+ DEPDOM  int64 x169; double x1        2                     0
+  CHBAL  int64 x169; double x1        2                     0
+     SC  int64 x169; double x1        2                     0
+ LNLSGR  int64 x169; double x1        2                     0
+LNLSNET  int64 x169; double x1        2                     0
+   LNRE  int64 x169; double x1        2                     0
+   LNCI  int64 x169; double x1        2                     0
+  LNCON  int64 x7; double x163        2                     0
+ NCLNLS  double x9; int64 x161        2                     0
+P3ASSET   null x68; int64 x102        2                     0
+P9ASSET double x25; int64 x145        2                     0
+NAASSET double x24; int64 x146        2                     0
+RBCRWAJ int64 x24; double x146        2                     0
+
+==============================================================================
+2. LOAD AND TYPE THE PANEL (one explicit schema)
+==============================================================================
+Panel: 1,682,616 rows x 33 columns
+Values that could not be converted to numbers (set to missing): 0
+
+==============================================================================
+3. KEY CHECKS
+==============================================================================
+Rows                          : 1,682,616
+Missing CERT                  : 0
+Unparseable REPDTE            : 0
+REPDTE not a quarter-end      : 0
+Duplicate (CERT, REPDTE)      : 0
+Distinct quarters / banks     : 170 / 24,064
+First / last quarter          : 1984-03-31 / 2026-06-30
+
+==============================================================================
+4. MISSING VALUES by variable and by year (schema drift)
+==============================================================================
+Share of missing values per variable (%), top 12:
+P3ASSET   57.76
+NTLNLS     4.75
+P9ASSET    4.62
+NAASSET    4.62
+ELNATR     2.57
+ROE        1.11
+BRO        1.00
+EINTEXP    0.38
+NETINC     0.28
+NONIX      0.28
+INTINC     0.28
+NONII      0.28
+
+Variables that are mostly missing in the early years (first year with <50% missing):
+P3ASSET: 2001
+
+==============================================================================
+5. IMPLAUSIBLE VALUES (rules: count, share, proposed handling)
+==============================================================================
+                    rule  rows  share_%                          proposed_handling
+   ASSET missing or <= 0     0     0.00   EXCLUDE from modelling: ratios undefined
+EQ < 0 (negative equity) 15659     0.93      KEEP: insolvency signal, not an error
+  EQ > ASSET (ASSET > 0)     1     0.00       FLAG; set EQ-based ratios to missing
+                 DEP < 0     0     0.00                       FLAG; set to missing
+             DEP > ASSET  6204     0.37                     FLAG; keep, check size
+            DEPDOM > DEP     0     0.00                                 FLAG; keep
+          LNLSGR > ASSET   761     0.05           FLAG; set loan ratios to missing
+        LNLSNET > LNLSGR    15     0.00                                 FLAG; keep
+              NCLNLS < 0     3     0.00                       FLAG; set to missing
+          |ROA| > 50 (%)  1056     0.06 KEEP value; winsorise in training pipeline
+     |RBC1AAJ| > 100 (%)  2969     0.18 KEEP value; winsorise in training pipeline
+
+==============================================================================
+6. DISTRIBUTIONS, OUTLIERS AND UNITS
+==============================================================================
+    variable             p0       p0.1        p1       p50           p99          p99.9             p100
+       ASSET           1.00   1,597.00  5,416.00 86,130.00 10,488,691.65 153,189,680.00 4,091,315,000.00
+          EQ  -4,565,197.00 -57,922.64    100.00  8,001.00  1,024,240.78  16,635,780.96   341,580,000.00
+         DEP           0.00       0.00    504.00 73,045.00  7,542,488.40 109,159,914.41 2,820,284,000.00
+      LNLSGR     -61,697.00       0.00      0.00 50,129.00  6,915,545.88  86,459,395.26 1,561,577,000.00
+      NCLNLS     -17,196.00       0.00      0.00    468.00    105,914.32   1,501,903.37    65,914,905.00
+      NETINC -24,593,679.00 -79,957.08 -4,333.00    394.00     69,256.62   1,016,060.03    52,502,000.00
+         ROA        -761.90     -22.43     -5.66      0.97          4.16          33.15           860.61
+         ROE    -354,657.80    -375.93    -60.11     10.34         38.95         125.46       301,050.00
+        NIMY      -4,515.15      -4.59      0.24      4.05          7.72          15.74         1,125.00
+     RBC1AAJ      -1,524.07      -8.59      0.00      9.10         68.07         104.40       466,500.00
+     RBCRWAJ     -16,629.63      -9.64      0.00     13.28        109.15         496.12       274,636.36
+EQ_ASSET_pct      -1,588.64     -31.03      0.24      9.24         65.07          98.59           100.05
+
+Unit check (ASSET is in thousand USD; totals in trillion USD), selected year-ends:
+ year  n_banks  median_ASSET_kUSD  total_ASSET_trillion_USD
+ 1985    18082          42,374.00                      4.00
+ 1990    15426          53,776.50                      4.75
+ 2000    10020          84,952.00                      7.49
+ 2008     8395         140,162.00                     13.97
+ 2010     7747         153,006.00                     13.43
+ 2020     5067         279,585.00                     22.05
+ 2023     4658         334,292.50                     23.90
+ 2025     4411         377,110.00                     25.54
+
+==============================================================================
+7. CONTINUITY: gaps in each bank's quarterly series
+==============================================================================
+Banks: 24,064
+Banks with at least one missing quarter between first and last report: 32
+Total missing bank-quarters inside series: 92
+Banks with a single observation: 204
+Observations per bank (quarters): {'count': 24064.0, 'mean': 69.9, 'std': 55.9, 'min': 1.0, '25%': 24.0, '50%': 51.0, '75%': 110.0, 'max': 170.0}
+
+==============================================================================
+8. FAILURES AND INSTITUTIONS: raw formats and cross-table checks
+==============================================================================
+Failures: dtypes and first rows (to see the raw date format)
+CERT        float64
+FAILDATE     object
+FAILYR       object
+COST        float64
+   CERT   FAILDATE FAILYR  COST
+0   NaN  4/19/1934   1934   NaN
+1   NaN  5/28/1934   1934   NaN
+2   NaN  7/18/1934   1934   NaN
+3   NaN  7/18/1934   1934   NaN
+
+Institutions: first rows
+   CERT  ACTIVE      ESTYMD    ENDEFYMD  CHANGEC1
+0     4       0  04/18/1916  02/01/1982    223.00
+1     6       0  01/01/1800  12/31/1978    223.00
+2     8       0  11/20/1933  10/02/2000    223.00
+3     9       0  01/01/1907  01/03/2008    223.00
+
+Failures rows 4,117; distinct CERT 3,585; unparseable FAILDATE 0
+CERT overlap  Financials & Failures: 3,241   Failures not in Financials: 344
+CERT overlap  Financials & Institutions: 23,829   Financials not in Institutions: 235   Institutions not in Financials: 4,006
+
+Failures by year (only those with Financials data can become positive labels):
+ fail_year  n_failures  n_in_financials
+      1984         106               84
+      1985         180              180
+      1986         204              204
+      1987         262              262
+      1988         470              470
+      1989         534              534
+      1990         382              382
+      1991         271              271
+      1992         181              181
+      1993          50               50
+      1994          15               15
+      1995           8                8
+      1996           6                6
+      1997           1                1
+      1998           3                3
+      1999           8                8
+      2000           7                7
+      2001           4                4
+      2002          11               11
+      2003           3                3
+      2004           4                4
+      2007           3                3
+      2008          30               30
+      2009         148              148
+      2010         157              157
+      2011          92               92
+      2012          51               51
+      2013          24               24
+      2014          18               18
+      2015           8                8
+      2016           5                5
+      2017           8                8
+      2019           4                4
+      2020           4                4
+      2023           5                5
+      2024           2                2
+      2025           2                2
+      2026           4                4
+Failures before 1984 (no Financials possible): 842
+
+COST (thousand USD): non-missing 3,480 of 4,117; median 11,304; mean 84,419; total 293,776,850
+
+Failed banks: (quarter of failure) - (quarter of last Call Report).
+  1 = last report is the quarter-end just before failure (normal); <=0 = report at/after failure; >=2 = stopped reporting early
+lag_q
+-2     316
+-1      65
+ 0      90
+ 1    2423
+ 2     337
+ 3      10
+Rows dated AFTER the failure date: 5,627 (banks: 464)
+
+==============================================================================
+9. EXITS: who stops reporting, and why (failure vs other)
+==============================================================================
+Last quarter in panel (index 8105). Banks whose last report is earlier = 'exited'.
+in_failures      not in Failures  in Failures    All
+exited                                              
+still reporting             4306            7   4313
+exited                     16517         3234  19751
+All                        20823         3241  24064
+
+--- exit: failure: 3,234 banks ---
+ACTIVE flag in Institutions: {0.0: 3234}
+Top CHANGEC1 codes:
+CHANGEC1
+211.00    2393
+213.00     316
+217.00     189
+230.00     181
+223.00     120
+235.00      25
+215.00       3
+240.00       3
+221.00       3
+224.00       1
+ENDEFYMD quarter minus last-report quarter (clipped to -4..8):
+1.00    2881
+2.00     340
+3.00      10
+4.00       1
+6.00       1
+8.00       1
+
+--- exit: other: 16,517 banks ---
+ACTIVE flag in Institutions: {0.0: 16336, nan: 179, 1.0: 2}
+Top CHANGEC1 codes:
+CHANGEC1
+223.00    14063
+221.00      805
+240.00      501
+217.00      458
+NaN         194
+224.00      183
+222.00      173
+235.00       84
+216.00       23
+213.00       21
+230.00       10
+225.00        1
+ENDEFYMD quarter minus last-report quarter (clipped to -4..8):
+-4.00        2
+0.00         5
+1.00     15980
+2.00       243
+3.00        36
+4.00        13
+5.00         5
+6.00         3
+7.00         4
+8.00        32
+
+--- still reporting: 4,313 banks ---
+ACTIVE flag in Institutions: {1.0: 4201, 0.0: 56, nan: 56}

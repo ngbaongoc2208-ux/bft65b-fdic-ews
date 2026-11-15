@@ -220,3 +220,5 @@ __marimo__/
 .streamlit/secrets.toml
 data_raw/
 data_clean/
+reports/quality/bank_summary.csv
+reports/quality/banks_with_gaps.csv

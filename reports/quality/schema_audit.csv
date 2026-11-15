@@ -1,0 +1,34 @@
+column,types_found,n_types,files_without_column
+CERT,int64 x170,1,0
+REPDTE,string x170,1,0
+STNAME,string x170,1,0
+ASSET,int64 x170,1,0
+DEP,int64 x169; double x1,2,0
+DEPDOM,int64 x169; double x1,2,0
+EQ,double x170,1,0
+BRO,double x170,1,0
+CHBAL,int64 x169; double x1,2,0
+SC,int64 x169; double x1,2,0
+LNLSGR,int64 x169; double x1,2,0
+LNLSNET,int64 x169; double x1,2,0
+LNRE,int64 x169; double x1,2,0
+LNCI,int64 x169; double x1,2,0
+LNCON,int64 x7; double x163,2,0
+LNATRES,double x170,1,0
+NCLNLS,double x9; int64 x161,2,0
+P3ASSET,null x68; int64 x102,2,0
+P9ASSET,double x25; int64 x145,2,0
+NAASSET,double x24; int64 x146,2,0
+NTLNLS,double x170,1,0
+ORE,double x170,1,0
+NETINC,double x170,1,0
+INTINC,double x170,1,0
+EINTEXP,double x170,1,0
+NONII,double x170,1,0
+NONIX,double x170,1,0
+ELNATR,double x170,1,0
+ROA,double x170,1,0
+ROE,double x170,1,0
+NIMY,double x170,1,0
+RBC1AAJ,double x170,1,0
+RBCRWAJ,int64 x24; double x146,2,0

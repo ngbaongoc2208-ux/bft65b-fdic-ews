@@ -1,0 +1,12 @@
+rule,rows,share_%,proposed_handling
+ASSET missing or <= 0,0,0.0,EXCLUDE from modelling: ratios undefined
+EQ < 0 (negative equity),15659,0.9306342029316255,"KEEP: insolvency signal, not an error"
+EQ > ASSET (ASSET > 0),1,5.943126655160773e-05,FLAG; set EQ-based ratios to missing
+DEP < 0,0,0.0,FLAG; set to missing
+DEP > ASSET,6204,0.36871157768617435,"FLAG; keep, check size"
+DEPDOM > DEP,0,0.0,FLAG; keep
+LNLSGR > ASSET,761,0.04522719384577349,FLAG; set loan ratios to missing
+LNLSNET > LNLSGR,15,0.000891468998274116,FLAG; keep
+NCLNLS < 0,3,0.0001782937996548232,FLAG; set to missing
+|ROA| > 50 (%),1056,0.06275941747849777,KEEP value; winsorise in training pipeline
+|RBC1AAJ| > 100 (%),2969,0.17645143039172337,KEEP value; winsorise in training pipeline
