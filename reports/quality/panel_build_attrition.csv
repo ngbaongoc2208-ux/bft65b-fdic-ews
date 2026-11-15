@@ -1,0 +1,5 @@
+step,rows,banks
+raw panel,1682616,24064
+after key checks,1682616,24064
+after ASSET > 0,1682616,24064
+after removing post-failure rows,1676980,24034

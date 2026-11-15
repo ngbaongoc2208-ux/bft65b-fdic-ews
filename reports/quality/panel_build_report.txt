@@ -1,0 +1,109 @@
+
+==============================================================================
+1. LOAD financials with one explicit schema
+==============================================================================
+Last quarter in data: 2026-06-30. Labels are complete only for REPDTE <= 2025-06-30.
+[raw panel] rows 1,682,616  banks 24,064
+
+==============================================================================
+2. ROW-LEVEL CLEANING (each rule uses only the row itself)
+==============================================================================
+Rows removed: missing CERT/date or duplicate key = 0
+[after key checks] rows 1,682,616  banks 24,064
+Rows removed: ASSET missing or <= 0 = 0
+[after ASSET > 0] rows 1,682,616  banks 24,064
+EQ > ASSET -> EQ set to missing: 1 rows
+DEP < 0 -> DEP set to missing: 0 rows
+LNLSGR > ASSET -> LNLSGR, LNLSNET set to missing: 761 rows
+NCLNLS < 0 -> NCLNLS set to missing: 3 rows
+Kept on purpose: negative equity (insolvency signal), DEP > ASSET (flagged only), extreme ROA/ROE/RBC (winsorised later, on training data only).
+
+==============================================================================
+3. FAILURE EVENTS (from the Failures table)
+==============================================================================
+Failures table rows: 4,117
+  without CERT: 488   without valid FAILDATE: 0
+RESTYPE values (failure vs assistance):
+RESTYPE
+FAILURE       3524
+ASSISTANCE     593
+Event rows used: 3,629; distinct banks: 3,585; banks with more than one event row: 44 (earliest event is used)
+
+==============================================================================
+4. EXITS: remove observations on/after the failure date
+==============================================================================
+Rows dated on/after the failure date: 5,636 (banks: 471)
+   restype  rows  banks
+ASSISTANCE  4428    202
+   FAILURE  1208    269
+[after removing post-failure rows] rows 1,676,980  banks 24,034
+Banks by exit type (failure = in Failures table; other_exit = merger/closure/etc., NOT a failure):
+meta_exit_type  banks   rows
+    other_exit  16517 912226
+        active   4306 670588
+       failure   3211  94166
+
+==============================================================================
+5. LABEL y and helper columns
+==============================================================================
+Rows with a complete label (REPDTE <= 2025-06-30): 1,659,479 of 1,676,980
+Positive rows (y=1): 12,294  (0.741% of labelled rows)
+Rows with a gap before them (qgap_prev > 1): 33
+
+Failed banks per year: in the panel / with at least one labelled positive row
+           failed_banks_in_panel  with_labelled_positive_rows
+fail_year                                                    
+1984                          84                           84
+1985                         180                          180
+1986                         203                          203
+1987                         259                          259
+1988                         470                          470
+1989                         526                          526
+1990                         378                          378
+1991                         269                          269
+1992                         160                          160
+1993                          49                           49
+1994                          15                           15
+1995                           8                            8
+1996                           6                            6
+1997                           1                            1
+1998                           3                            3
+1999                           8                            8
+2000                           7                            7
+2001                           4                            4
+2002                          11                           11
+2003                           3                            3
+2004                           4                            4
+2007                           3                            3
+2008                          29                           29
+2009                         148                          148
+2010                         156                          156
+2011                          92                           92
+2012                          51                           51
+2013                          24                           24
+2014                          18                           18
+2015                           8                            8
+2016                           5                            5
+2017                           8                            8
+2019                           4                            4
+2020                           4                            4
+2023                           5                            5
+2024                           2                            2
+2025                           2                            2
+2026                           4                            2
+Failed banks with NO positive row (stopped reporting >4 quarters early or too recent): 0
+
+==============================================================================
+6. SANITY CHECKS (must all be PASS)
+==============================================================================
+PASS  no duplicate (CERT, date)
+PASS  no row on/after failure date
+PASS  non-failed banks never have y=1
+PASS  y=1 rows fail within 1..366 days
+PASS  ASSET > 0 everywhere
+
+==============================================================================
+7. SAVE
+==============================================================================
+Saved data_clean\panel.parquet: 1,676,980 rows x 41 columns, 141.7 MB
+Columns starting with 'meta_', plus y and label_complete, are NOT features (they use future information).

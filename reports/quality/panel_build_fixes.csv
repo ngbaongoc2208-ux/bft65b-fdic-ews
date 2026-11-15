@@ -1,0 +1,5 @@
+rule,rows_affected
+EQ > ASSET -> EQ set to missing,1
+DEP < 0 -> DEP set to missing,0
+"LNLSGR > ASSET -> LNLSGR, LNLSNET set to missing",761
+NCLNLS < 0 -> NCLNLS set to missing,3
