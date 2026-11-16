@@ -1,0 +1,9 @@
+AGGREGATE[maintain_order: false]
+  [col("EQ").sum()] BY [col("qi")]
+  FROM
+  SELECT [col("CERT"), col("qi"), col("ASSET"), col("EQ")]
+    FILTER col("qi") >= 8000
+    FROM
+      Parquet SCAN [data_clean/bench/panel_x1.parquet]
+      PROJECT */11 COLUMNS
+      ESTIMATED ROWS: 1676980

@@ -1,0 +1,84 @@
+Machine: 12 cores / 16 threads, RAM 15.7 GB (available now 4.5 GB); polars 2.0.0, pandas 2.3.3, numpy 2.2.6
+Rows in 1x panel: 1,676,980; replicated files (MB on disk): x1: 49, x2: 98, x4: 196, x8: 392
+
+=== A. Core transformations, in memory, 1x (mean +- std of 5 runs, after 1 warm-up) ===
+read 11 columns                            pandas   0.728+-0.153s   polars   0.109+-0.020s   x  6.7   identical: -
+ratios (5 columns)                         pandas   0.232+-0.014s   polars   0.016+-0.001s   x 14.6   identical: True
+group by quarter (4 aggregates)            pandas   0.166+-0.010s   polars   0.051+-0.009s   x  3.2   identical: True
+window: lag4, rolling mean/std per bank    pandas   3.993+-0.043s   polars   0.217+-0.027s   x 18.4   identical: True
+join bank-level max asset                  pandas   0.449+-0.035s   polars   0.059+-0.008s   x  7.6   identical: True
+rank within quarter                        pandas   1.980+-0.082s   polars   0.134+-0.013s   x 14.8   identical: True
+
+=== C. Polars query plans ===
+--- Query 2 (filter + select + group by), UNOPTIMISED plan ---
+AGGREGATE[maintain_order: false]
+  [col("EQ").sum()] BY [col("qi")]
+  FROM
+  SELECT [col("CERT"), col("qi"), col("ASSET"), col("EQ")]
+    FILTER col("qi") >= 8000
+    FROM
+      Parquet SCAN [data_clean/bench/panel_x1.parquet]
+      PROJECT */11 COLUMNS
+      ESTIMATED ROWS: 1676980
+--- Query 2, OPTIMISED plan ---
+AGGREGATE[maintain_order: false]
+  [col("EQ").sum()] BY [col("qi")]
+  FROM
+  Parquet SCAN [data_clean/bench/panel_x1.parquet]
+  PROJECT 2/11 COLUMNS
+  SELECTION: col("qi") >= 8000
+  ESTIMATED ROWS: 1676980
+--- Feature pipeline, OPTIMISED plan (first 45 lines) ---
+ WITH_COLUMNS:
+ [(col("eq_assets").rank().over([col("qi")]) / col("eq_assets").count().over([col("qi")]).cast(Float64)).alias("eq_rank")] 
+  LEFT JOIN:
+  BUILD SIDE: PreferRight
+  LEFT PLAN ON: [col("CERT")]
+    CACHE[id: 6c3a1d59-1599-4989-99d0-862cb70c2767]
+       WITH_COLUMNS:
+       [(col("eq_assets") - col("eq_lag4")).alias("eq_chg4")] 
+        simple π 19/19 ["CERT", "qi", "ASSET", "EQ", ... 15 other columns]
+           WITH_COLUMNS:
+           [col("eq_assets").shift([dyn int: 4]).over([col("CERT")]).alias("eq_lag4")] 
+             WITH_COLUMNS:
+             [((col("EQ") / col("ASSET")) * 100.0).alias("eq_assets"), when(col("LNLSGR") > 0.0).then((col("NCLNLS") / col("LNLSGR")) * 100.0).otherwise(null.cast(Float64)).alias("npl_ratio"), (((col("CHBAL") + col("SC")) / col("ASSET")) * 100.0).alias("liquid"), when(col("DEP") > 0.0).then((col("LNLSNET") / col("DEP")) * 100.0).otherwise(null.cast(Float64)).alias("loans_dep"), col("ASSET").log([dyn float: 2.718281828459045]).alias("log_asset"), col("ROA").rolling_mean().over([col("CERT")]).alias("roa_m4"), col("ROA").rolling_std().over([col("CERT")]).alias("roa_s4")] 
+              Parquet SCAN [data_clean/bench/panel_x1.parquet]
+              PROJECT */11 COLUMNS
+              ESTIMATED ROWS: 1676980
+  RIGHT PLAN ON: [col("CERT")]
+    AGGREGATE[maintain_order: false]
+      [col("ASSET").max().alias("max_asset")] BY [col("CERT")]
+      FROM
+      simple π 2/2 ["CERT", "ASSET"]
+        CACHE[id: 6c3a1d59-1599-4989-99d0-862cb70c2767]
+  END LEFT JOIN
+
+Saved reports\part3\polars_check.csv (170 quarters) for the PySpark comparison.
+
+=== B. Whole pipeline from the Parquet file, scaling study (each run = fresh process) ===
+x1  pandas            rows   1,676,980  time     6.99+- 0.06s  peak memory     1401 MB   (wall 46s)
+x1  polars_eager      rows   1,676,980  time     0.47+- 0.02s  peak memory     1005 MB   (wall 6s)
+x1  polars_lazy       rows   1,676,980  time     0.34+- 0.04s  peak memory     1219 MB   (wall 5s)
+x1  polars_streaming  rows   1,676,980  time     0.33+- 0.05s  peak memory     1164 MB   (wall 5s)
+x2  pandas            rows   3,353,960  time    21.75+- 9.90s  peak memory     2731 MB   (wall 86s)
+x2  polars_eager      rows   3,353,960  time     0.95+- 0.03s  peak memory     1638 MB   (wall 7s)
+x2  polars_lazy       rows   3,353,960  time     0.61+- 0.11s  peak memory     1650 MB   (wall 5s)
+x2  polars_streaming  rows   3,353,960  time     0.53+- 0.06s  peak memory     1668 MB   (wall 5s)
+x4  pandas            rows   6,707,920  time    32.93+- 2.11s  peak memory     5277 MB   (wall 145s)
+x4  polars_eager      rows   6,707,920  time     1.97+- 0.11s  peak memory     2606 MB   (wall 12s)
+x4  polars_lazy       rows   6,707,920  time     1.16+- 0.07s  peak memory     2420 MB   (wall 9s)
+x4  polars_streaming  rows   6,707,920  time     1.15+- 0.05s  peak memory     2350 MB   (wall 8s)
+x8  polars_eager      rows  13,415,840  time     4.18+- 0.32s  peak memory     4471 MB   (wall 16s)
+x8  polars_lazy       rows  13,415,840  time     2.24+- 0.04s  peak memory     3994 MB   (wall 10s)
+x8  polars_streaming  rows  13,415,840  time     2.21+- 0.10s  peak memory     3952 MB   (wall 10s)
+
+Result check at 1x (sum of every feature, relative difference vs pandas):
+  polars_eager      rows equal: True   worst relative difference: 8.56e-15
+  polars_lazy       rows equal: True   worst relative difference: 8.56e-15
+  polars_streaming  rows equal: True   worst relative difference: 8.96e-15
+
+Extrapolation of peak memory (linear fit) to 70% of this machine's RAM:
+  pandas            about 769 MB per million rows -> roughly 14 million rows (9x the US panel) before RAM is exhausted
+  polars_eager      about 291 MB per million rows -> roughly 37 million rows (22x the US panel) before RAM is exhausted
+  polars_lazy       about 235 MB per million rows -> roughly 44 million rows (26x the US panel) before RAM is exhausted
+  polars_streaming  about 234 MB per million rows -> roughly 45 million rows (27x the US panel) before RAM is exhausted

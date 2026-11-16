@@ -1,0 +1,23 @@
+ WITH_COLUMNS:
+ [(col("eq_assets").rank().over([col("qi")]) / col("eq_assets").count().over([col("qi")]).cast(Float64)).alias("eq_rank")] 
+  LEFT JOIN:
+  BUILD SIDE: PreferRight
+  LEFT PLAN ON: [col("CERT")]
+    CACHE[id: a9af533d-e3e2-4b9d-9d3c-d91dfd126c67]
+       WITH_COLUMNS:
+       [(col("eq_assets") - col("eq_lag4")).alias("eq_chg4")] 
+        simple π 19/19 ["CERT", "qi", "ASSET", "EQ", ... 15 other columns]
+           WITH_COLUMNS:
+           [col("eq_assets").shift([dyn int: 4]).over([col("CERT")]).alias("eq_lag4")] 
+             WITH_COLUMNS:
+             [((col("EQ") / col("ASSET")) * 100.0).alias("eq_assets"), when(col("LNLSGR") > 0.0).then((col("NCLNLS") / col("LNLSGR")) * 100.0).otherwise(null.cast(Float64)).alias("npl_ratio"), (((col("CHBAL") + col("SC")) / col("ASSET")) * 100.0).alias("liquid"), when(col("DEP") > 0.0).then((col("LNLSNET") / col("DEP")) * 100.0).otherwise(null.cast(Float64)).alias("loans_dep"), col("ASSET").log([dyn float: 2.718281828459045]).alias("log_asset"), col("ROA").rolling_mean().over([col("CERT")]).alias("roa_m4"), col("ROA").rolling_std().over([col("CERT")]).alias("roa_s4")] 
+              Parquet SCAN [data_clean/bench/panel_x1.parquet]
+              PROJECT */11 COLUMNS
+              ESTIMATED ROWS: 1676980
+  RIGHT PLAN ON: [col("CERT")]
+    AGGREGATE[maintain_order: false]
+      [col("ASSET").max().alias("max_asset")] BY [col("CERT")]
+      FROM
+      simple π 2/2 ["CERT", "ASSET"]
+        CACHE[id: a9af533d-e3e2-4b9d-9d3c-d91dfd126c67]
+  END LEFT JOIN

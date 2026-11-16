@@ -1,0 +1,7 @@
+AGGREGATE[maintain_order: false]
+  [col("EQ").sum()] BY [col("qi")]
+  FROM
+  Parquet SCAN [data_clean/bench/panel_x1.parquet]
+  PROJECT 2/11 COLUMNS
+  SELECTION: col("qi") >= 8000
+  ESTIMATED ROWS: 1676980
