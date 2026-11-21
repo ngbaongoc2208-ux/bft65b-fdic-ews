@@ -1,0 +1,163 @@
+
+==============================================================================
+1. LOAD PANEL AND CHECK THE INPUT COLUMNS
+==============================================================================
+Panel: 1,676,980 rows x 41 columns
+Feature inputs contain no label or meta_ column: PASS
+
+Year-to-date check (median of item/total assets by quarter of the year, 1990+). If the item is year-to-date the values rise roughly 1 : 2 : 3 : 4.
+ m  median NTLNLS/LNLSGR  median ELNATR/LNLSGR  median ROA (annualised)
+ 3                 0.000                 0.000                    0.985
+ 6                 0.000                 0.001                    1.006
+ 9                 0.001                 0.001                    1.015
+12                 0.001                 0.002                    0.979
+
+==============================================================================
+2. BUILD THE FEATURE TABLE (Polars lazy pipeline)
+==============================================================================
+47 features built for 1,676,980 rows in 6.7 s
+               rows  banks  positive_rows  failed_banks      first       last  positive_%
+split                                                                                    
+burnin        71627  18300            557           264 1984-03-31 1984-12-31       0.778
+dev         1251469  23426          11085          2962 1985-03-31 2010-12-31       0.886
+gap           30164   7649            269           117 2011-03-31 2011-12-31       0.892
+test         306219   7472            383           117 2012-03-31 2025-06-30       0.125
+unlabelled    17501   4454             11             4 2025-09-30 2026-06-30       0.063
+
+Failed banks with at least one positive row: dev 2,962, test 117  (exam requires at least 50 in test): PASS
+
+Features with more than 1% missing values in the development period:
+       feature              group  missing_%_dev
+   texas_ratio            Capital          1.111
+     npl_ratio      Asset quality          1.186
+      p9_ratio      Asset quality          4.979
+      na_ratio      Asset quality          4.979
+reserves_loans      Asset quality          1.318
+  reserves_npl      Asset quality          8.619
+      nco_rate      Asset quality          6.186
+     prov_rate      Asset quality          3.350
+           roe           Earnings          1.126
+      re_loans Composition & size          1.082
+      ci_loans Composition & size          1.082
+    cons_loans Composition & size          1.310
+      asset_g4             Growth          1.817
+       loan_g4             Growth          2.800
+        dep_g4             Growth          2.409
+  d4_eq_assets           Dynamics          2.050
+  d4_npl_ratio           Dynamics          3.043
+        d4_roa           Dynamics          1.817
+     d4_liquid           Dynamics          1.817
+d4_texas_ratio           Dynamics          2.975
+        roa_m4           Dynamics          1.364
+        roa_s4           Dynamics          1.364
+lag1_npl_ratio           Dynamics          1.627
+  rk_npl_ratio  Relative to peers          1.186
+rk_texas_ratio  Relative to peers          1.111
+
+==============================================================================
+3. SAVE THE FEATURE TABLE (and verify the file)
+==============================================================================
+Saved data_clean\features.parquet: 1,676,980 rows x 52 columns, 495.3 MB; re-read rows equal: True; pyarrow can open it: True
+
+==============================================================================
+4. LEAKAGE TESTS
+==============================================================================
+Test A - truncation invariance. Features of rows dated <= T computed from the full history must equal the features computed from data truncated at T (a feature that looks ahead would change).
+  T = 1995-12-31: rows 750,668; keys equal True; missing-pattern mismatches 0; max abs difference 0.00e+00 -> PASS
+  T = 2008-12-31: rows 1,258,781; keys equal True; missing-pattern mismatches 0; max abs difference 0.00e+00 -> PASS
+  T = 2015-12-31: rows 1,462,524; keys equal True; missing-pattern mismatches 0; max abs difference 0.00e+00 -> PASS
+
+Test B - negative control: the same test applied to a deliberately LEAKY feature (next quarter's ROA).
+  lead_roa: 8,302 rows differ between full and truncated data -> the test detects look-ahead: PASS
+
+==============================================================================
+5. PREPROCESSING FITTED ON TRAINING DATA ONLY
+==============================================================================
+Validation scheme inside the development period (used for ablation here, and as one fold in Part 5):
+  train 1985-03-31 to 2004-12-31: 1,047,239 rows, 9,505 positive
+  gap   2005Q1-2005Q4 (4 quarters)
+  valid 2006-03-31 to 2010-12-31: 168,359 rows, 1,580 positive
+
+Pipeline fitted on 1,047,239 training rows (no validation or test row seen):
+  missing-value flags added for: ['texas_ratio', 'npl_ratio', 'p9_ratio', 'na_ratio', 'reserves_loans', 'reserves_npl', 'nco_rate', 'prov_rate', 'roe', 'cons_loans', 'asset_g4', 'loan_g4', 'dep_g4', 'd4_eq_assets', 'd4_npl_ratio', 'd4_roa', 'd4_liquid', 'd4_texas_ratio', 'roa_m4', 'roa_s4', 'lag1_npl_ratio', 'rk_npl_ratio', 'rk_texas_ratio']
+  columns dropped as >0.95 correlated (dropped -> kept): {'rk_liquid': 'liquid', 'miss_na_ratio': 'miss_p9_ratio', 'miss_cons_loans': 'miss_reserves_loans', 'miss_d4_roa': 'miss_asset_g4', 'miss_d4_liquid': 'miss_asset_g4', 'miss_roa_s4': 'miss_roa_m4', 'miss_rk_npl_ratio': 'miss_npl_ratio', 'miss_rk_texas_ratio': 'miss_texas_ratio'}
+  columns after preprocessing: 62
+
+Why fitting on the right window matters: upper clipping bounds fitted on 1985-2004 versus on all of the development period differ by (relative), top 5:
+reserves_npl     0.157
+texas_ratio      0.150
+d4_texas_ratio   0.147
+dep_g4           0.138
+bro_dep          0.112
+
+==============================================================================
+6. SINGLE-FEATURE SANITY CHECK (development period)
+==============================================================================
+       feature   auc  auc_strength      direction
+   texas_ratio 0.956         0.956 higher=riskier
+     eq_assets 0.053         0.947  lower=riskier
+        roa_m4 0.059         0.941  lower=riskier
+rk_texas_ratio 0.936         0.936 higher=riskier
+           roa 0.068         0.932  lower=riskier
+  rk_eq_assets 0.070         0.930  lower=riskier
+       rbc1aaj 0.070         0.930  lower=riskier
+lag1_eq_assets 0.075         0.925  lower=riskier
+      lag1_roa 0.082         0.918  lower=riskier
+        rk_roa 0.086         0.914  lower=riskier
+Largest single-feature AUC: 0.956 -> SUSPICIOUS: check for leakage
+
+==============================================================================
+7. ABLATION BY FEATURE GROUP (train 1985-2004, validate 2006-2010, logistic regression)
+==============================================================================
+Baseline rate of positive rows in validation: 0.94%  (PR-AUC of a random score = this rate)
+{'setting': 'all features', 'pr_auc': 0.46935384630293314, 'roc_auc': 0.9656512017229502, 'recall_top5pct': np.float64(0.889873417721519), 'n_features': 62}
+{'setting': 'drop Capital', 'pr_auc': 0.44815255521870284, 'roc_auc': 0.9644883196826605, 'recall_top5pct': np.float64(0.8854430379746835), 'n_features': 57}
+{'setting': 'only Capital', 'pr_auc': 0.5897348892368547, 'roc_auc': 0.9535968352267281, 'recall_top5pct': np.float64(0.8645569620253165), 'n_features': 6}
+{'setting': 'drop Asset quality', 'pr_auc': 0.4555677494856102, 'roc_auc': 0.9653628416472613, 'recall_top5pct': np.float64(0.8822784810126583), 'n_features': 50}
+{'setting': 'only Asset quality', 'pr_auc': 0.35290006211751757, 'roc_auc': 0.9524929109172823, 'recall_top5pct': np.float64(0.8031645569620253), 'n_features': 14}
+{'setting': 'drop Earnings', 'pr_auc': 0.5254883789963507, 'roc_auc': 0.9660696589233034, 'recall_top5pct': np.float64(0.8936708860759494), 'n_features': 56}
+{'setting': 'only Earnings', 'pr_auc': 0.27545536474379223, 'roc_auc': 0.9246266244399376, 'recall_top5pct': np.float64(0.7341772151898734), 'n_features': 6}
+{'setting': 'drop Liquidity & funding', 'pr_auc': 0.47269002038301844, 'roc_auc': 0.9692615126771643, 'recall_top5pct': np.float64(0.8727848101265823), 'n_features': 58}
+{'setting': 'only Liquidity & funding', 'pr_auc': 0.044289579918395536, 'roc_auc': 0.8135283135622288, 'recall_top5pct': np.float64(0.3018987341772152), 'n_features': 5}
+{'setting': 'drop Composition & size', 'pr_auc': 0.4935919013094859, 'roc_auc': 0.9665233404837039, 'recall_top5pct': np.float64(0.8930379746835443), 'n_features': 57}
+{'setting': 'only Composition & size', 'pr_auc': 0.02066491714680948, 'roc_auc': 0.7470930833124804, 'recall_top5pct': np.float64(0.10886075949367088), 'n_features': 6}
+{'setting': 'drop Growth', 'pr_auc': 0.47298608336256776, 'roc_auc': 0.9655894775022902, 'recall_top5pct': np.float64(0.8911392405063291), 'n_features': 57}
+{'setting': 'only Growth', 'pr_auc': 0.075762006786361, 'roc_auc': 0.8109367994832242, 'recall_top5pct': np.float64(0.5246835443037975), 'n_features': 6}
+{'setting': 'drop Dynamics', 'pr_auc': 0.4457574106248106, 'roc_auc': 0.9632938601913955, 'recall_top5pct': np.float64(0.8740506329113924), 'n_features': 47}
+{'setting': 'only Dynamics', 'pr_auc': 0.44930712448754756, 'roc_auc': 0.9609505636239151, 'recall_top5pct': np.float64(0.8689873417721519), 'n_features': 16}
+{'setting': 'drop Relative to peers', 'pr_auc': 0.4868022289055725, 'roc_auc': 0.9681900386481286, 'recall_top5pct': np.float64(0.8936708860759494), 'n_features': 57}
+{'setting': 'only Relative to peers', 'pr_auc': 0.45115720963193395, 'roc_auc': 0.9576786220770745, 'recall_top5pct': np.float64(0.850632911392405), 'n_features': 8}
+
+                 setting  pr_auc  roc_auc  recall_top5pct  n_features  delta_pr_auc_vs_all
+            all features   0.469    0.966           0.890          62                0.000
+            drop Capital   0.448    0.964           0.885          57               -0.021
+            only Capital   0.590    0.954           0.865           6                0.120
+      drop Asset quality   0.456    0.965           0.882          50               -0.014
+      only Asset quality   0.353    0.952           0.803          14               -0.116
+           drop Earnings   0.525    0.966           0.894          56                0.056
+           only Earnings   0.275    0.925           0.734           6               -0.194
+drop Liquidity & funding   0.473    0.969           0.873          58                0.003
+only Liquidity & funding   0.044    0.814           0.302           5               -0.425
+ drop Composition & size   0.494    0.967           0.893          57                0.024
+ only Composition & size   0.021    0.747           0.109           6               -0.449
+             drop Growth   0.473    0.966           0.891          57                0.004
+             only Growth   0.076    0.811           0.525           6               -0.394
+           drop Dynamics   0.446    0.963           0.874          47               -0.024
+           only Dynamics   0.449    0.961           0.869          16               -0.020
+  drop Relative to peers   0.487    0.968           0.894          57                0.017
+  only Relative to peers   0.451    0.958           0.851           8               -0.018
+
+==============================================================================
+8. PREPROCESSING CHOICES AND PLACEBO TEST (same split)
+==============================================================================
+                               setting  pr_auc  roc_auc  recall_top5pct  n_features
+                          all features   0.469    0.966           0.890          62
+      no winsorising, corr filter 0.95   0.445    0.964           0.891          62
+  winsorise 1% / 99%, corr filter 0.95   0.529    0.976           0.891          62
+winsorise 0.1% / 99.9%, no corr filter   0.470    0.966           0.890          70
+     PLACEBO: training labels shuffled   0.017    0.537           0.175          62
+
+Placebo ROC-AUC 0.537 (should be close to 0.5): PASS
+
+Feature pipeline build time: 6.7 s for 1,676,980 rows.
+Nothing in this script fitted, tuned or evaluated on the test period; test rows were only written to the table.

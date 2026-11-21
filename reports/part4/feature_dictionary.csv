@@ -1,0 +1,48 @@
+feature,group,definition,why,missing_%_dev,p1,median,p99
+eq_assets,Capital,EQ / ASSET x 100,Loss-absorbing buffer; thin capital precedes failure,0.23827997337528936,0.0,8.899415758724144,60.19075044839432
+rbc1aaj,Capital,Tier-1 leverage ratio (RBC1AAJ),Regulatory capital adequacy used by supervisors,0.0,0.0,8.71402424219786,64.02740661183728
+rbcrwaj,Capital,Total risk-based capital ratio (RBCRWAJ),Capital relative to risk-weighted assets,0.0,0.0,12.903709010765962,103.05665465589038
+texas_ratio,Capital,(NCLNLS + ORE) / (EQ + LNATRES) x 100,Bad assets against loss-absorbing resources; classic failure indicator,1.1112540542354625,0.0,7.46163869276978,231.75732563469373
+neg_eq,Capital,1 if EQ < 0,Book insolvency,0.23827997337528936,0.0,0.0,0.0
+npl_ratio,Asset quality,NCLNLS / LNLSGR x 100,Share of loans that do not perform,1.185726534177035,0.0,0.9722220992731843,14.73920698310911
+p9_ratio,Asset quality,P9ASSET / ASSET x 100,Assets 90+ days past due,4.9789487394414085,0.0,0.07546611423498076,3.0018986080505785
+na_ratio,Asset quality,NAASSET / ASSET x 100,Non-accrual assets,4.97886883334705,0.0,0.271074954476861,6.505198786379283
+ore_assets,Asset quality,ORE / ASSET x 100,"Foreclosed real estate, a trace of past credit losses",0.23827997337528936,0.0,0.05989601880207963,6.0728767177221625
+reserves_loans,Asset quality,LNATRES / LNLSGR x 100,Reserve cushion relative to loans,1.3176514959619456,0.0,1.2630551074127536,6.395289285223471
+reserves_npl,Asset quality,LNATRES / NCLNLS x 100,Coverage of non-performing loans by reserves,8.618591431349877,0.589457364014267,112.50169330804661,10500.0
+nco_rate,Asset quality,NTLNLS / LNLSGR x 100 x 12/month,Annualised net charge-offs (realised losses),6.185770482528932,-0.8415297342231733,0.09658616658572791,6.513460262528598
+prov_rate,Asset quality,ELNATR / LNLSGR x 100 x 12/month,Annualised loan-loss provisions (expected losses),3.350382630332833,-0.34928279306802695,0.24835942339274814,7.40700267938806
+roa,Earnings,"ROA (annualised %, FDIC)","Profits rebuild capital, losses erode it",0.0,-6.188442805932988,0.993363891359376,3.763903797715444
+roe,Earnings,"ROE (annualised %, FDIC)",Return to shareholders,1.1256371512198864,-67.66,10.8,39.23
+nimy,Earnings,Net interest margin (NIMY),Core earning power of the loan and deposit business,0.0,0.3541278685743853,4.193861963616165,7.828616774289041
+efficiency,Earnings,NONIX / (INTINC - EINTEXP + NONII) x 100,Cost burden relative to revenue,0.6386894122027793,32.00418817574402,66.13545816733067,237.48801626482128
+int_exp_share,Earnings,EINTEXP / INTINC x 100,Share of interest income paid out as funding cost,0.39505573050550996,6.774365292482898,48.154180238870794,88.83568497644312
+liquid,Liquidity & funding,(CHBAL + SC) / ASSET x 100,Liquid assets that can meet withdrawals,7.990609435791058e-05,3.206066090046871,30.604539030024952,78.48179048526552
+loans_dep,Liquidity & funding,LNLSNET / DEP x 100,Loans financed by deposits,0.7239492148826698,14.6775633246887,69.42585965458224,137.82370710505666
+loans_assets,Liquidity & funding,LNLSGR / ASSET x 100,Share of assets tied up in loans,0.05609407823925323,0.0,60.793675097086705,90.97268334166641
+bro_dep,Liquidity & funding,BRO / DEP x 100,"Reliance on brokered, volatile deposits",0.907093983151001,0.0,0.0,29.586456056162966
+dep_assets,Liquidity & funding,DEP / ASSET x 100,Deposit funding share,7.990609435791058e-05,4.170016762678265,87.53592535553096,96.62908072898601
+re_loans,Composition & size,LNRE / LNLSGR x 100,Real-estate concentration,1.0818486115117514,2.248187974883394,60.10199517026183,102.55939641313073
+ci_loans,Composition & size,LNCI / LNLSGR x 100,Commercial and industrial loan share,1.0818486115117514,0.0,13.030910013766233,60.866565287056694
+cons_loans,Composition & size,LNCON / LNLSGR x 100,Consumer loan share,1.3101403230923019,0.030723014768279606,10.91924175538821,66.88728532232979
+sec_assets,Composition & size,SC / ASSET x 100,"Securities share, proxy for interest-rate sensitivity",7.990609435791058e-05,0.0,24.10257036392521,71.3037685207171
+log_asset,Composition & size,ln(ASSET),Size; small banks fail more often,0.0,8.531032973989108,11.147800635375791,15.71899877111179
+asset_g4,Growth,Year-on-year growth of ASSET (%),Rapid growth often reflects risk taking,1.8165851491327392,-20.926251885414402,5.579088503660468,133.6092517624771
+loan_g4,Growth,Year-on-year growth of LNLSGR (%),Fast loan growth lowers underwriting quality,2.799589921923755,-28.896473226846094,6.7897791512776084,198.52631523325178
+dep_g4,Growth,Year-on-year growth of DEP (%),Fast deposit growth signals aggressive funding,2.4086893083248566,-21.437794605779995,5.189449090847531,170.75100696060238
+d4_eq_assets,Dynamics,eq_assets minus its value 4 quarters ago,Speed of capital deterioration,2.0503104751296277,-12.93939638541651,0.07127961114615644,5.258048700690953
+d4_npl_ratio,Dynamics,npl_ratio minus its value 4 quarters ago,Speed of asset-quality deterioration,3.0425044487718034,-5.624296198061958,0.0,7.655596974126695
+d4_roa,Dynamics,roa minus its value 4 quarters ago,Earnings trend,1.8165851491327392,-4.636923652865196,0.0003470329193788757,4.520521247482524
+d4_liquid,Dynamics,liquid minus its value 4 quarters ago,Liquidity trend,1.816744961321455,-18.642434880796667,-0.46111281136331783,18.189590663883248
+d4_texas_ratio,Dynamics,texas_ratio minus its value 4 quarters ago,Trend of bad assets against resources,2.974983799039369,-49.47568189400767,0.0,99.4742345217251
+roa_m4,Dynamics,Mean of roa over the last 4 quarters (past only),Persistent profitability,1.3643166550669652,-4.559040729620144,0.99531391502853,3.4800957460690074
+roa_s4,Dynamics,Std of roa over the last 4 quarters (past only),Earnings volatility,1.3643166550669652,0.013370985246301655,0.15623548287097905,3.7871395884338894
+lag1_eq_assets,Dynamics,eq_assets one quarter ago,Short memory of capital,0.6891101577426209,0.49411855891617823,8.88601442458451,58.60840667100303
+lag1_npl_ratio,Dynamics,npl_ratio one quarter ago,Short memory of asset quality,1.6268081750327017,0.0,0.9734765889462496,14.064588440778905
+lag1_roa,Dynamics,roa one quarter ago,Short memory of earnings,0.45202877578270023,-5.709440242455994,0.9964162215587657,3.722162856840819
+rk_eq_assets,Relative to peers,Percentile rank of eq_assets in the same quarter,Removes time effects; standing among peers,0.23827997337528936,0.010041575404373454,0.5000438943025195,0.9900436205593508
+rk_npl_ratio,Relative to peers,Percentile rank of npl_ratio in the same quarter,Relative asset quality,1.185726534177035,0.02526747097655361,0.5000452340590842,0.9900365812595329
+rk_roa,Relative to peers,Percentile rank of roa in the same quarter,Relative profitability,0.0,0.010041402604700352,0.5000482020630483,0.9900372837622472
+rk_texas_ratio,Relative to peers,Percentile rank of texas_ratio in the same quarter,Relative bad-asset burden,1.1112540542354625,0.022440440035094822,0.500043863254822,0.9900454771812897
+rk_liquid,Relative to peers,Percentile rank of liquid in the same quarter,Relative liquidity,7.990609435791058e-05,0.01004139863035745,0.5000483187976774,0.9900372868437549
+rk_loans_dep,Relative to peers,Percentile rank of loans_dep in the same quarter,Relative funding structure,0.7239492148826698,0.010040160642570281,0.5000436948352704,0.9900378938341785
