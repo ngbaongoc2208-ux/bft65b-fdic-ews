@@ -228,7 +228,7 @@ class Standardizer(BaseEstimator, TransformerMixin):
         return (X - self.mean_) / self.std_
 
 
-def make_preprocessor(winsor_q: float | None = 0.001, corr_threshold: float | None = 0.95,
+def make_preprocessor(winsor_q: float | None = 0.01, corr_threshold: float | None = 0.95,
                       min_missing_rate: float = 0.01) -> Pipeline:
     """Order: missing flags -> winsorise -> median-impute -> drop highly correlated -> standardise."""
     return Pipeline([("flags", AddMissingFlags(min_missing_rate)), ("winsor", Winsorizer(winsor_q)),
