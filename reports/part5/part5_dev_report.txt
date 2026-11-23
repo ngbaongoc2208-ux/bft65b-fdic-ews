@@ -1,0 +1,144 @@
+
+==============================================================================
+1. LOAD THE DEVELOPMENT PERIOD ONLY
+==============================================================================
+Development rows: 1,251,469, positive rows 11,085, banks 23,426
+All folds have a gap of at least 4 quarters between the last training row and the first validation row.
+
+==============================================================================
+2. COST OF A FAILURE, ESTIMATED FROM THE FAILURES TABLE
+==============================================================================
+Banks failing in the development period with a positive row: 2,962; COST known for 2,924
+COST of a failure (thousand USD): median 12,737, mean 82,104, 90th percentile 150,556, max 11,979,121
+Missed failure: its own COST (median 12,737 if unknown). Alarm: 1.0% of the median COST = 127.4 thousand USD per alarmed bank-quarter (assumption; sensitivity in section 6).
+
+==============================================================================
+3. ROLLING-ORIGIN VALIDATION (expanding window, 4-quarter gap)
+==============================================================================
+
+F1: train 1985-03-31..1989-12-31 (345,510 rows, 6,951 positive) | validate 1991-03-31..1993-12-31 (170,674 rows, 1,168 positive, 0.68%)
+  LR C=0.01        PR-AUC 0.267  ROC-AUC 0.980  recall(top 5% rows) 0.932  banks detected 0.971   (13s)
+  LR C=0.1         PR-AUC 0.267  ROC-AUC 0.980  recall(top 5% rows) 0.932  banks detected 0.971   (11s)
+  LR C=1           PR-AUC 0.267  ROC-AUC 0.980  recall(top 5% rows) 0.933  banks detected 0.971   (11s)
+  HGB depth3 w1    PR-AUC 0.381  ROC-AUC 0.985  recall(top 5% rows) 0.938  banks detected 0.976   (5s)
+  HGB depth3 w10   PR-AUC 0.372  ROC-AUC 0.985  recall(top 5% rows) 0.937  banks detected 0.976   (5s)
+  HGB depth5 w1    PR-AUC 0.395  ROC-AUC 0.983  recall(top 5% rows) 0.932  banks detected 0.968   (9s)
+  HGB depth5 w10   PR-AUC 0.428  ROC-AUC 0.983  recall(top 5% rows) 0.940  banks detected 0.971   (9s)
+
+F2: train 1985-03-31..1998-12-31 (813,655 rows, 9,381 positive) | validate 2000-03-31..2005-12-31 (227,839 rows, 96 positive, 0.04%)
+  LR C=0.01        PR-AUC 0.044  ROC-AUC 0.903  recall(top 5% rows) 0.729  banks detected 0.815   (22s)
+  LR C=0.1         PR-AUC 0.043  ROC-AUC 0.903  recall(top 5% rows) 0.729  banks detected 0.815   (22s)
+  LR C=1           PR-AUC 0.043  ROC-AUC 0.903  recall(top 5% rows) 0.729  banks detected 0.815   (22s)
+  HGB depth3 w1    PR-AUC 0.098  ROC-AUC 0.926  recall(top 5% rows) 0.771  banks detected 0.852   (9s)
+  HGB depth3 w10   PR-AUC 0.097  ROC-AUC 0.920  recall(top 5% rows) 0.792  banks detected 0.852   (9s)
+  HGB depth5 w1    PR-AUC 0.106  ROC-AUC 0.923  recall(top 5% rows) 0.781  banks detected 0.852   (17s)
+  HGB depth5 w10   PR-AUC 0.086  ROC-AUC 0.937  recall(top 5% rows) 0.750  banks detected 0.852   (18s)
+
+F3: train 1985-03-31..2004-12-31 (1,047,239 rows, 9,505 positive) | validate 2006-03-31..2010-12-31 (168,359 rows, 1,580 positive, 0.94%)
+  LR C=0.01        PR-AUC 0.529  ROC-AUC 0.976  recall(top 5% rows) 0.891  banks detected 0.963   (40s)
+  LR C=0.1         PR-AUC 0.529  ROC-AUC 0.976  recall(top 5% rows) 0.890  banks detected 0.963   (36s)
+  LR C=1           PR-AUC 0.529  ROC-AUC 0.976  recall(top 5% rows) 0.891  banks detected 0.963   (44s)
+  HGB depth3 w1    PR-AUC 0.641  ROC-AUC 0.973  recall(top 5% rows) 0.897  banks detected 0.960   (11s)
+  HGB depth3 w10   PR-AUC 0.639  ROC-AUC 0.965  recall(top 5% rows) 0.885  banks detected 0.956   (11s)
+  HGB depth5 w1    PR-AUC 0.645  ROC-AUC 0.973  recall(top 5% rows) 0.896  banks detected 0.960   (20s)
+  HGB depth5 w10   PR-AUC 0.637  ROC-AUC 0.965  recall(top 5% rows) 0.885  banks detected 0.956   (21s)
+
+Mean over the three folds (365 s in total):
+                                pr_auc  roc_auc  row_recall_top5%  bank_detect_top5%
+model                                                                               
+HGB depth5 w10                   0.384    0.962             0.858              0.926
+HGB depth5 w1                    0.382    0.960             0.870              0.927
+HGB depth3 w1                    0.373    0.961             0.869              0.929
+HGB depth3 w10                   0.370    0.957             0.871              0.928
+LR C=0.01                        0.280    0.953             0.850              0.916
+LR C=1                           0.280    0.953             0.851              0.916
+LR C=0.1                         0.279    0.953             0.850              0.916
+single indicator: texas_ratio    0.276    0.902             0.719              0.841
+single indicator: equity ratio   0.248    0.870             0.666              0.837
+random score                     0.006    0.500             0.050                NaN
+
+Selected model (highest mean PR-AUC): HGB depth5 w10.  Baseline (best logistic regression): LR C=0.01.
+
+==============================================================================
+4. COST-BASED ALARM THRESHOLD (from out-of-fold predictions)
+==============================================================================
+                model   rho  threshold  alarm_rate_%  banks_detected_%  cost_saving_vs_no_alarm_%  p_star_theory
+final: HGB depth5 w10 0.001      0.023         4.118            96.185                     99.201          0.001
+final: HGB depth5 w10 0.003      0.069         2.515            94.798                     98.743          0.003
+final: HGB depth5 w10 0.010      0.112         2.014            94.335                     97.429          0.010
+final: HGB depth5 w10 0.030      0.112         2.014            94.335                     94.018          0.029
+final: HGB depth5 w10 0.100      0.265         1.312            91.445                     84.351          0.091
+  baseline: LR C=0.01 0.001      0.100         5.620            97.572                     99.239          0.001
+  baseline: LR C=0.01 0.003      0.156         4.017            96.647                     98.463          0.003
+  baseline: LR C=0.01 0.010      0.411         1.913            93.642                     96.885          0.010
+  baseline: LR C=0.01 0.030      0.577         1.413            90.636                     94.035          0.029
+  baseline: LR C=0.01 0.100      0.844         0.811            81.618                     87.637          0.091
+
+Chosen threshold for rho = 0.01: final model 0.1117, baseline 0.4112
+p_star_theory = c_alarm / (c_alarm + c_miss) is the threshold for perfectly calibrated probabilities and one failure cost; the empirical threshold uses the out-of-fold scores and the actual COST of each failed bank.
+
+==============================================================================
+5. FREEZE THE CONFIGURATION (commit this file BEFORE running 09_final_test.py)
+==============================================================================
+{
+ "created": "2026-11-23T09:09:32",
+ "seed": 42,
+ "folds": [
+  [
+   "F1",
+   "1985-03-31",
+   "1989-12-31",
+   "1991-03-31",
+   "1993-12-31"
+  ],
+  [
+   "F2",
+   "1985-03-31",
+   "1998-12-31",
+   "2000-03-31",
+   "2005-12-31"
+  ],
+  [
+   "F3",
+   "1985-03-31",
+   "2004-12-31",
+   "2006-03-31",
+   "2010-12-31"
+  ]
+ ],
+ "rho_base": 0.01,
+ "median_cost_kUSD": 12737.328000000001,
+ "c_alarm_kUSD": 127.37328000000002,
+ "baseline": {
+  "model": "LR C=0.01",
+  "params": {
+   "kind": "lr",
+   "C": 0.01
+  },
+  "threshold": 0.4112225753630997,
+  "oof_alarm_rate_%": 1.9134831143538578,
+  "oof_banks_detected_%": 93.64161849710982
+ },
+ "final": {
+  "model": "HGB depth5 w10",
+  "params": {
+   "kind": "hgb",
+   "depth": 5,
+   "lr": 0.05,
+   "iters": 300,
+   "w_pos": 10.0
+  },
+  "threshold": 0.11170552592632949,
+  "oof_alarm_rate_%": 2.0136821010739636,
+  "oof_banks_detected_%": 94.33526011560693
+ },
+ "sha256": "3ac03910cb18fbd483f711ac9f9656df25ca6595e3478e50a3d4089f52d1a3f6"
+}
+
+==============================================================================
+6. SMALL SAMPLE FOR THE SPARK MLlib DEMO (fold F3: train 1985-2004, validate 2006-2010)
+==============================================================================
+data_clean\mllib_sample.parquet: 437,233 rows (268,874 train: all positives + 25% of negatives with weight 4; 168,359 validation)
+size 99.0 MB   md5 82c5c697c56b0ab5a70f61a0f6e4f41e
+
+Nothing in this script touched the test period. Next: commit reports/part5/frozen_config.json, then run 09_final_test.py ONCE.

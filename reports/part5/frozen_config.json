@@ -1,0 +1,103 @@
+{
+ "created": "2026-11-23T09:09:32",
+ "features": [
+  "eq_assets",
+  "rbc1aaj",
+  "rbcrwaj",
+  "texas_ratio",
+  "neg_eq",
+  "npl_ratio",
+  "p9_ratio",
+  "na_ratio",
+  "ore_assets",
+  "reserves_loans",
+  "reserves_npl",
+  "nco_rate",
+  "prov_rate",
+  "roa",
+  "roe",
+  "nimy",
+  "efficiency",
+  "int_exp_share",
+  "liquid",
+  "loans_dep",
+  "loans_assets",
+  "bro_dep",
+  "dep_assets",
+  "re_loans",
+  "ci_loans",
+  "cons_loans",
+  "sec_assets",
+  "log_asset",
+  "asset_g4",
+  "loan_g4",
+  "dep_g4",
+  "d4_eq_assets",
+  "d4_npl_ratio",
+  "d4_roa",
+  "d4_liquid",
+  "d4_texas_ratio",
+  "roa_m4",
+  "roa_s4",
+  "lag1_eq_assets",
+  "lag1_npl_ratio",
+  "lag1_roa",
+  "rk_eq_assets",
+  "rk_npl_ratio",
+  "rk_roa",
+  "rk_texas_ratio",
+  "rk_liquid",
+  "rk_loans_dep"
+ ],
+ "seed": 42,
+ "folds": [
+  [
+   "F1",
+   "1985-03-31",
+   "1989-12-31",
+   "1991-03-31",
+   "1993-12-31"
+  ],
+  [
+   "F2",
+   "1985-03-31",
+   "1998-12-31",
+   "2000-03-31",
+   "2005-12-31"
+  ],
+  [
+   "F3",
+   "1985-03-31",
+   "2004-12-31",
+   "2006-03-31",
+   "2010-12-31"
+  ]
+ ],
+ "rho_base": 0.01,
+ "median_cost_kUSD": 12737.328000000001,
+ "c_alarm_kUSD": 127.37328000000002,
+ "baseline": {
+  "model": "LR C=0.01",
+  "params": {
+   "kind": "lr",
+   "C": 0.01
+  },
+  "threshold": 0.4112225753630997,
+  "oof_alarm_rate_%": 1.9134831143538578,
+  "oof_banks_detected_%": 93.64161849710982
+ },
+ "final": {
+  "model": "HGB depth5 w10",
+  "params": {
+   "kind": "hgb",
+   "depth": 5,
+   "lr": 0.05,
+   "iters": 300,
+   "w_pos": 10.0
+  },
+  "threshold": 0.11170552592632949,
+  "oof_alarm_rate_%": 2.0136821010739636,
+  "oof_banks_detected_%": 94.33526011560693
+ },
+ "sha256": "3ac03910cb18fbd483f711ac9f9656df25ca6595e3478e50a3d4089f52d1a3f6"
+}
