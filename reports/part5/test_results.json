@@ -1,0 +1,42 @@
+{
+ "evaluated": "2026-11-23T17:58:00",
+ "config_sha256": "3ac03910cb18fbd483f711ac9f9656df25ca6595e3478e50a3d4089f52d1a3f6",
+ "final": {
+  "rows": 306219.0,
+  "failed_banks": 117.0,
+  "alarm_rows": 2499.0,
+  "alarm_rate_%": 0.81608260754558,
+  "precision_rows_%": 13.405362144857943,
+  "row_recall_%": 87.46736292428199,
+  "banks_detected": 108.0,
+  "banks_detected_%": 92.3076923076923,
+  "cost_kUSD": 34739645.46672,
+  "cost_no_alarm_kUSD": 40053461.339,
+  "saving_vs_no_alarm_%": 13.266808147504461,
+  "pr_auc": 0.4928508998917389,
+  "roc_auc": 0.9690866932317556,
+  "row_recall_top1%": 87.98955613577023,
+  "banks_detected_top1%": 92.3076923076923,
+  "row_recall_top5%": 90.07832898172323,
+  "banks_detected_top5%": 92.3076923076923
+ },
+ "baseline": {
+  "rows": 306219.0,
+  "failed_banks": 117.0,
+  "alarm_rows": 2508.0,
+  "alarm_rate_%": 0.8190216805619507,
+  "precision_rows_%": 12.121212121212121,
+  "row_recall_%": 79.37336814621409,
+  "banks_detected": 106.0,
+  "banks_detected_%": 90.5982905982906,
+  "cost_kUSD": 34876241.029240005,
+  "cost_no_alarm_kUSD": 40053461.339,
+  "saving_vs_no_alarm_%": 12.925775043364219,
+  "pr_auc": 0.36233197829487984,
+  "roc_auc": 0.9617640260243573,
+  "row_recall_top1%": 82.24543080939948,
+  "banks_detected_top1%": 91.45299145299145,
+  "row_recall_top5%": 90.33942558746736,
+  "banks_detected_top5%": 93.16239316239316
+ }
+}
